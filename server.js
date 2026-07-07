@@ -6,12 +6,21 @@ const path = require('path');
 const axios = require('axios');
 
 const app = express();
-const PORT = 3000;
+// ALTERAÇÃO 1: Usa a porta que o Render fornecer ou a 3000 por padrão
+const PORT = process.env.PORT || 3000;
 
 const CAMINHO_DADOS = path.join(__dirname, 'dados_painel.json');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' })); // Aumentado o limite para aceitar imagens em texto se necessário
+
+// ALTERAÇÃO 2: Permite que o servidor sirva o arquivo index.html e seus estilos na raiz do link
+app.use(express.static(__dirname));
+
+// ALTERAÇÃO 3: Rota principal que entrega o visual do painel quando você acessa o link do Render
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Função auxiliar para garantir que o ficheiro de banco de dados exista
 function lerFicheiroDados() {
@@ -21,7 +30,7 @@ function lerFicheiroDados() {
         return dadosIniciais;
     }
     const conteudo = fs.readFileSync(CAMINHO_DADOS, 'utf-8');
-    return JSON.parse(conteudo || '{"clientes\":[],"financas":[]}');
+    return JSON.parse(conteudo || '{"clientes":[]"financas":[]}');
 }
 
 // 1. ROTA DE RASPAGEM ATUALIZADA (CONVERTE FOTO PARA BASE64)
@@ -106,5 +115,5 @@ app.post('/api/salvar', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
